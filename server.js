@@ -22,3 +22,11 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/payment" , paymentRoutes);
 app.use("/api", appointmentRoutes);
 
+app.get("/", (req ,res)=>{
+    res.send("Backend is Running");
+});
+const PORT=process.env.PORT || 5000;
+
+app.listen(PORT , ()=>{
+    console.log(`Server running on port ${PORT}`);
+})
