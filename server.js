@@ -13,6 +13,8 @@ app.use(express.json());
 
 const appointmentRoutes =require("./routes/appointmentroutes");
 
+const volunteerRoutes=require("./routes/volunteerroutes");
+
 connectDB();
 
 app.use("/api/reviews", reviewRoutes);
@@ -20,7 +22,8 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/payment" , paymentRoutes);
-app.use("/api", appointmentRoutes);
+app.use("/api", volunteerRoutes);
+// app.use("/api", appointmentRoutes);
 
 app.get("/", (req ,res)=>{
     res.send("Backend is Running");
