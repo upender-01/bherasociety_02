@@ -24,8 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/payment" , paymentRoutes);
 app.use("/api", volunteerRoutes);
-console.log("EMAIL:", process.env.EMAIL);
-console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD ? "Loaded" : "Missing");
+
 // app.use("/api", appointmentRoutes);
 
 // app.use((err, req , res , next)=>{

@@ -48,22 +48,6 @@ router.post("/volunteers", async (req, res) =>{
 
     
 
-    // // Check email configuration
-    // if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
-    //   console.log("Email credentials missing.");
-
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Email configuration is missing.",
-    //   });
-    // }
-
-
-    /** Verify SMTP 
-    await transporter.verify();
-     console.log("SMTP Connected.");
-    */
-
     // Send Mail
    setImmediate(()=>{
       transporter
