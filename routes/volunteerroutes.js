@@ -6,30 +6,27 @@ require("dotenv").config();
 
 const router = express.Router();
 
-if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
-  throw new Error("Email credentials are missing");
+if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  throw new Error("Brevo SMTP credentials are missing.");
 }
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASSWORD,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
-  connectionTimeout: 60000,
-  greetingTimeout: 60000,
-  socketTimeout: 60000,
 });
 
-// Verify SMTP when server starts
-transporter.verify((error) => {
-  if (error) {
-    console.error("SMTP Connection Failed:");
-    console.error(error);
+// Verify SMTP once when the server starts
+transporter.verify((err) => {
+  if (err) {
+    console.error("SMTP Connection Failed");
+    console.error(err);
   } else {
-    console.log(" SMTP Connected Successfully");
+    console.log("✅ Brevo SMTP Connected");
   }
 });
 
@@ -44,7 +41,8 @@ router.post("/volunteers", async (req, res) => {
       });
     }
 
-    const volunteer = new Volunteer({
+    // Save to MongoDB
+    const newvolunteer = new Volunteer({
       name,
       phone,
       email,
@@ -52,76 +50,76 @@ router.post("/volunteers", async (req, res) => {
       interest,
     });
 
-    await volunteer.save();
+    await newvolunteer.save();
 
 
-    // Respond immediately
+    // Send success response immediately
     res.status(200).json({
       success: true,
-      saved: true,
       message: "Volunteer registered successfully",
     });
 
     // Send email in background
-    setImmediate(async () => {
-      try {
-        const info = await transporter.sendMail({
-          from: `"Bhera Society NGO" <${process.env.EMAIL}>`,
-          to: "bhukyaupender804@gmail.com",
-          subject: "🤝 New Volunteer Registration",
+      setImmediate(()=>{
+      transporter
+      .sendMail({
+        from: '"Bhera Society NGO" <bhukyaupender804@gmail.com>',
+        to: "bhukyaupender804@gmail.com",
+        subject: "🤝 New Volunteer Registration",
 
-          html: `
-          <div style="font-family:Arial,sans-serif;padding:20px">
-            <h2 style="color:#16a34a">
-              New Volunteer Registration
-            </h2>
+        html: `
+        <div style="font-family:Arial,sans-serif;padding:20px">
+          <h2 style="color:#16a34a;">New Volunteer Registration</h2>
 
-            <table border="1" cellpadding="10" cellspacing="0"
-              style="border-collapse:collapse;width:100%">
-              <tr>
-                <td><strong>Name</strong></td>
-                <td>${name}</td>
-              </tr>
+          <table border="1" cellpadding="10" cellspacing="0"
+          style="border-collapse:collapse;width:100%">
 
-              <tr>
-                <td><strong>Phone</strong></td>
-                <td>${phone}</td>
-              </tr>
+            <tr>
+              <td><strong>Name</strong></td>
+              <td>${name}</td>
+            </tr>
 
-              <tr>
-                <td><strong>Email</strong></td>
-                <td>${email}</td>
-              </tr>
+            <tr>
+              <td><strong>Phone</strong></td>
+              <td>${phone}</td>
+            </tr>
 
-              <tr>
-                <td><strong>City</strong></td>
-                <td>${city || "Not Provided"}</td>
-              </tr>
+            <tr>
+              <td><strong>Email</strong></td>
+              <td>${email}</td>
+            </tr>
 
-              <tr>
-                <td><strong>Interest</strong></td>
-                <td>${interest || "Not Provided"}</td>
-              </tr>
-            </table>
+            <tr>
+              <td><strong>City</strong></td>
+              <td>${city || "Not Provided"}</td>
+            </tr>
 
-            <br>
+            <tr>
+              <td><strong>Interest</strong></td>
+              <td>${interest || "Not Provided"}</td>
+            </tr>
 
-            <p>
-              A new volunteer has successfully registered through the
-              <strong>Bhera Society NGO Website.</strong>
-            </p>
-          </div>
-          `,
-        });
+          </table>
 
+          <br>
+
+          <p>
+            A new volunteer has registered through the
+            <strong>Bhera Society NGO Website.</strong>
+          </p>
+        </div>
+        `,
+      })
+      .then((info)=>{
         console.log("✅ Email Sent Successfully");
         console.log(info.messageId);
-
-      } catch (err) {
-        console.error("❌ Email Sending Failed");
+      })
+      .catch((err)=>{
+        console.error("Email is not sent");
         console.error(err);
-      }
+      })
     });
+    
 
   } catch (error) {
     console.error("Volunteer Route Error");
