@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 
 // In production, keep this secret in a .env file!
-const JWT_SECRET = 'your_super_secret_hospital_key'; 
+require("dotenv").config();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 function authMiddleware(req, res, next) {
   // Get token from header

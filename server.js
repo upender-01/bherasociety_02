@@ -16,7 +16,6 @@ app.use(express.urlencoded({extended : true}));
 const appointmentRoutes =require("./routes/appointmentroutes");
 
 const volunteerRoutes=require("./routes/volunteerroutes");
-
 connectDB();
 
 app.use("/api/reviews", reviewRoutes);
