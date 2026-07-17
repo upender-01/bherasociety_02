@@ -20,7 +20,8 @@ router.post("/volunteers", async (req, res) => {
         message: "Name, Phone and Email are required",
       });
       
-    }else{
+    }
+
       /** if the all required as user entered then details will stored in the database */
       const newvolunteer=new volunteerschema({
         name , 
@@ -29,13 +30,10 @@ router.post("/volunteers", async (req, res) => {
         city,
        interest
       });
+      
       await newvolunteer.save(); // saves the data of the volunteer.
 
-      res.status(200).send({
-        saved : true,
-        message : "Saved successfully"
-      });
-    }
+    
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
