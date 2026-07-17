@@ -2,7 +2,8 @@ const express = require("express");
 const nodemailer = require("nodemailer");
 
 const router = express.Router();
-
+const volunteerschema=require("../models/volunteerdb");
+require("dotenv").config();
 router.post("/volunteers", async (req, res) => {
   try {
     const {
@@ -17,6 +18,22 @@ router.post("/volunteers", async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Name, Phone and Email are required",
+      });
+      
+    }else{
+      /** if the all required as user entered then details will stored in the database */
+      const newvolunteer=new volunteerschema({
+        name , 
+        phone, 
+        email, 
+        city,
+       interest
+      });
+      await newvolunteer.save(); // saves the data of the volunteer.
+
+      res.status(200).send({
+        saved : true,
+        message : "Saved successfully"
       });
     }
 

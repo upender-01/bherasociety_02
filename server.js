@@ -11,6 +11,8 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
+app.use(express.urlencoded({extended : true}));
+
 const appointmentRoutes =require("./routes/appointmentroutes");
 
 const volunteerRoutes=require("./routes/volunteerroutes");
@@ -24,6 +26,11 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/payment" , paymentRoutes);
 app.use("/api", volunteerRoutes);
 // app.use("/api", appointmentRoutes);
+
+// app.use((err, req , res , next)=>{
+//     console.log(err);
+//     res.status(500).send("Something is broken");
+// })
 
 app.get("/", (req ,res)=>{
     res.send("Backend is Running");
