@@ -1,37 +1,47 @@
 const express = require("express");
 const nodemailer = require("nodemailer");
+const Volunteer = require("../models/volunteerdb");
+
+require("dotenv").config();
 
 const router = express.Router();
-const volunteerschema=require("../models/volunteerdb");
-require("dotenv").config();
+
 router.post("/volunteers", async (req, res) => {
   try {
-    const {
+    const { name, phone, email, city, interest } = req.body;
+
+    // Validation
+    if (!name || !phone || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, Phone and Email are required.",
+      });
+    }
+
+    // Save to MongoDB
+    const volunteer = new Volunteer({
       name,
       phone,
       email,
       city,
       interest,
-    } = req.body;
+    });
 
-    if (!name || !phone || !email) {
-      return res.status(400).json({
+    await volunteer.save();
+
+    console.log("Volunteer saved successfully.");
+
+    // Check email configuration
+    if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
+      console.log("Email credentials missing.");
+
+      return res.status(500).json({
         success: false,
-        message: "Name, Phone and Email are required",
+        message: "Email configuration is missing.",
       });
-      
     }
-      /** if the all required as user entered then details will stored in the database */
-      const newvolunteer=new volunteerschema({
-        name , 
-        phone, 
-        email, 
-        city,
-       interest
-      });
-      
-      await newvolunteer.save(); // saves the data of the volunteer.
 
+    // Create transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -40,68 +50,85 @@ router.post("/volunteers", async (req, res) => {
       },
     });
 
+    // Verify SMTP
     await transporter.verify();
 
+    console.log("SMTP Connected.");
+
+    // Send Mail
     const info = await transporter.sendMail({
       from: `"Bhera Society NGO" <${process.env.EMAIL}>`,
       to: "bhukyaupender804@gmail.com",
-      subject: "New Volunteer Registration",
+      subject: "🤝 New Volunteer Registration",
+
       html: `
-        <div style="font-family:Arial,sans-serif;padding:20px;">
-          <h2 style="color:#16a34a;">
-            🤝 New Volunteer Registration
-          </h2>
+      <div style="font-family:Arial,sans-serif;padding:20px">
 
-          <table cellpadding="8" cellspacing="0" border="1" style="border-collapse:collapse;width:100%;">
-            <tr>
-              <td><strong>Full Name</strong></td>
-              <td>${name}</td>
-            </tr>
+        <h2 style="color:#16a34a">
+          New Volunteer Registration
+        </h2>
 
-            <tr>
-              <td><strong>Phone</strong></td>
-              <td>${phone}</td>
-            </tr>
+        <table border="1" cellpadding="10" cellspacing="0"
+        style="border-collapse:collapse;width:100%">
 
-            <tr>
-              <td><strong>Email</strong></td>
-              <td>${email}</td>
-            </tr>
+          <tr>
+            <td><strong>Name</strong></td>
+            <td>${name}</td>
+          </tr>
 
-            <tr>
-              <td><strong>City</strong></td>
-              <td>${city || "Not Provided"}</td>
-            </tr>
+          <tr>
+            <td><strong>Phone</strong></td>
+            <td>${phone}</td>
+          </tr>
 
-            <tr>
-              <td><strong>Area of Interest</strong></td>
-              <td>${interest || "Not Selected"}</td>
-            </tr>
-          </table>
+          <tr>
+            <td><strong>Email</strong></td>
+            <td>${email}</td>
+          </tr>
 
-          <br>
+          <tr>
+            <td><strong>City</strong></td>
+            <td>${city || "Not Provided"}</td>
+          </tr>
 
-          <p>
-            A new volunteer has registered through the
-            <strong>Bhera Society NGO Website.</strong>
-          </p>
-        </div>
+          <tr>
+            <td><strong>Interest</strong></td>
+            <td>${interest || "Not Provided"}</td>
+          </tr>
+
+        </table>
+
+        <br>
+
+        <p>
+          A new volunteer has successfully registered through the
+          <strong>Bhera Society NGO Website.</strong>
+        </p>
+
+      </div>
       `,
     });
 
-    console.log("Volunteer Email Sent:", info.messageId);
+    console.log("Email Sent Successfully");
+    console.log(info.messageId);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Volunteer registration successful.",
+      saved: true,
+      emailSent: true,
+      message: "Volunteer registered successfully.",
     });
-  } catch (error) {
-    console.error("Volunteer Error:", error);
 
-    res.status(500).json({
+  } catch (error) {
+
+    console.error("Volunteer Route Error");
+    console.error(error);
+
+    return res.status(500).json({
       success: false,
-      message: "Failed to register volunteer.",
+      message: error.message,
     });
+
   }
 });
 
